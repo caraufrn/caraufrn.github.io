@@ -41,8 +41,20 @@
     .thumbnail {
         box-shadow: 0px 6px 16px 4px rgba(0,0,0,0.25);
     }
+    .thumbnail .caption-full {
+        padding: 20px;
+    }
     body {
         background-color: #ddd;
+    }
+    #cart_table {
+        display: none;
+    }
+    td.remove {
+        text-align: center;
+    }
+    #pagseguro {
+        text-align: center;
     }
     </style>
 
@@ -70,7 +82,7 @@
 
                 <div class="thumbnail">
                     
-                    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="2000">
                         <!-- Indicators -->
                         <ol class="carousel-indicators">
                             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -110,9 +122,67 @@
                     </div>
 
                     <div class="caption-full">
-                        <h1>R$ 30,00</h1>
+                        <h1>R$ 31,50*</h1>
+                        <p><i>*acréscimo decorrente de taxas da venda online</i></p>
                         <h4><b>Camiseta Biomedicina UFRN</b></h4>
-                        <p>Camiseta de malha mescla PV com manga raglan disponível nas cores preto e vinho. Estampas em serigrafia. Brasão e logo da UFRN nas costas.</p>
+                        <p>Camiseta de malha mescla PA com manga raglan disponível nas cores preto e vermelho. Estampas em serigrafia. Brasão e logo da UFRN nas costas.</p>
+                        
+                        <hr/>
+
+                        <form class="form-inline" id="cart">
+                            <div class="form-group">
+                                <label for="exampleInputName2">Cor</label>
+                                <select class="form-control" id="cor">
+                                    <option selected disabled>Escolha a cor</option>
+                                    <option value="p">Preto</option>
+                                    <option value="v">Vermelho</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail2">Tamanho</label>
+                                <select class="form-control" id="tamanho">
+                                    <option selected disabled>Escolha o tamanho</option>
+                                    <option value="pp">PP</option>
+                                    <option value="p">P</option>
+                                    <option value="m">M</option>
+                                    <option value="g">G</option>
+                                    <option value="gg">GG</option>
+                                    <option value="ppb">PP Babylook</option>
+                                    <option value="pb">P Babylook</option>
+                                    <option value="mb">M Babylook</option>
+                                    <option value="gb">G Babylook</option>
+                                    <option value="ggb">GG Babylook</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-default">Adicionar</button>
+                        </form>
+
+                        <hr/>
+
+                        <table class="table" id="cart_table">
+                        <thead>
+                        <tr>
+                            <th>Camiseta</th>
+                            <th>Remover</th>
+                        </tr>
+                        </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+
+                        <hr/>
+                        
+                        <form id="pagseguro" target="pagseguro" method="post" action="https://pagseguro.uol.com.br/checkout/checkout.jhtml">
+                            <input type="hidden" name="email_cobranca" value="imparatodanilo@gmail.com">
+                            <input type="hidden" name="tipo" value="CP">
+                            <input type="hidden" name="moeda" value="BRL">
+
+                            <div id="cart_items">
+                            </div>
+
+                            <input type="hidden" name="tipo_frete" value="EN">
+                            <input type="image" src="https://stc.pagseguro.uol.com.br/public/img/botoes/pagamentos/209x48-comprar-assina.gif" name="submit" alt="Pague com PagSeguro - é rápido, grátis e seguro!">
+                        </form>
                     </div>
                 </div>
 
@@ -127,6 +197,104 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
+
+    <script>
+
+    function switchCor(cor){
+        switch(cor){
+            case "p":
+                return "Preto"
+                break;
+            case "v":
+                return "Vermelho"
+                break;
+            default:
+                return "Preto"
+        }
+    }
+
+    function checkCart(cart){
+        if(cart.length >= 1)
+            $('#cart_table, #pagseguro').show();
+        else
+            $('#cart_table, #pagseguro').hide();
+    }
+
+    function updateCart(cart){
+        $('#cart_items').html('');
+
+        //each
+        $.each(cart, function( index, value ) {
+            var i = index + 1;
+            $('#cart_items').append(
+                '<input type="hidden" name="item_id_'+i+'" value="'+value.codigo+'">'+
+                '<input type="hidden" name="item_descr_'+i+'" value="'+value.descricao+'">'+
+                '<input type="hidden" name="item_quant_'+i+'" value="1">'+
+                '<input type="hidden" name="item_valor_'+i+'" value="3150">'+
+                '<input type="hidden" name="item_frete_'+i+'" value="0">'+
+                '<input type="hidden" name="item_peso_'+i+'" value="0">'
+            );
+        });
+        //end each
+    }
+
+    $(document).ready(function() {
+
+        var cart = [];
+
+        $('#cart').submit(function(e){
+            e.preventDefault();
+
+            var cor = $('#cor').val();
+            var tamanho = $('#tamanho').val();
+
+            //cart push
+            if(cor !== null && tamanho !== null){
+                cart.push({
+                    id: cart.length,
+                    codigo: tamanho + '_' + cor,
+                    descricao: 'Camiseta ' + tamanho.toUpperCase() + ' ' + switchCor(cor)
+                });
+            }
+            //cart push
+
+            checkCart(cart);
+
+            $('#cart_table tbody').html('');
+
+            //each
+            $.each(cart, function( index, value ) {
+                $('#cart_table tbody').append(
+                    '<tr>'+
+                        '<td>'+
+                            value.descricao+
+                        '</td>'+
+                        '<td class="col-md-1 remove">'+
+                            '<a id="'+index+'" href="javascript:void(0);"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>'+
+                        '</td>'+
+                    '</tr>'
+                );
+            });
+            //end each
+
+            //remove
+            $('#cart_table a').click(function(){
+                var toRemove = this.id;
+                cart = $.grep(cart, function(value, index){
+                    return value.id != toRemove; 
+                });
+                $(this).closest('tr').remove();
+                checkCart(cart);
+                updateCart(cart)
+            });
+            //end remove
+
+            updateCart(cart)
+
+        });
+
+    });
+    </script>
 
 </body>
 
